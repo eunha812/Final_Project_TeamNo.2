@@ -17,22 +17,36 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
         <style>
                 @import 'http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css';
-		h7{font-size:50px; text-align:center; text-shadow: 3px 3px 3px #4c18db; margin-top:2%;}
-		h8{font-size:15px; text-align:center; margin-top:2%;}
-                span{text-shadow:3px 3px 3px rgb(255,255,255);}
-                p{font-size:30px; text-align:center; margin-top:2%; font-color:#A9A9A9;}
-                .q1{text-align:center;}
-		.q2{text-align:center;}
+		h7{ position:relative;font-size:50px; text-align:center; text-shadow: 3px 3px 3px #4c18db; margin-top:2%;}
+		h8{ position:relative;font-size:15px; text-align:center; margin-top:2%;}
+                span{ position:relative;text-shadow:3px 3px 3px rgb(255,255,255);}
+                p{ position:relative;font-size:30px; text-align:center; margin-top:2%; font-color:#A9A9A9;}
+                .q1{ position:relative;text-align:center;}
+		.q2{ position:relative;text-align:center;}
                 input[type="text"]{width:30%;}
                 input[type="submit"]{margin-left:1%;}
 		input[type="file"]{width:30%;}
         </style>
+<script>
+window.onload=function() {
+    var cnvs = document.getElementById("cnvs");
+    if (cnvs.getContext) {
+        var ctx = cnvs.getContext('2d');
+       
+        
+    }
+    else alert('canvas를 지원하지 않는 브라우저입니다.');
+}
+</script>
+
 </head>
 <body>
+
 <div class="feature-page home header-area">
   <div class="container">
    <div class="header-top">
    </div>
+<canvas id="cnvs" width="500" height="420" style=" border: 10px solid white; position:absolute;"></canvas>
 <div class="row justify-content-center">
     <div class="col-lg-6 text-center">
      <div class="hero-text-wrapper">
@@ -42,12 +56,13 @@
         <h6>Final Project Team No.2</h6>
 	<h7><span>Hello :)<br>This is<br>website<br>for analysis.<br></span> </h7>
 
-<p>Choose <span>One of two</span> please.<br></p>
+<p>Choose <span>One of two</span> please.<br><br></p>
         <h8>먼저, 두개의 버튼 중 하나를 선택해주세요.<br>Single URL or File URL를 입력하시면<br><span>단어수, TF-IDF, Cosine Similarity</span>등을 <br> 확인할 수 있습니다!<br><br></h8>
-<p style="padding: 0px 50px 0px 50px;" align=justfy>
+<p style="padding: 0px 50px 0px 50px;position:relative" align=justfy>
 <a href="#" class="url_button">Single URL</a>
  <a href="#" class="file_button">URL File</a>
 </p>
+
  </div>
       </div>
      </div>
@@ -55,6 +70,5 @@
    </div>
   </div>
 
-  
 </body>
 
