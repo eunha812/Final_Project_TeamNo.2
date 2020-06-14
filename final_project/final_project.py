@@ -21,16 +21,45 @@ def cleanText(body):
 
     return cleanText
 
-if __name__ == '__main__':
+#------------------flask-------------------#
 
-    #crawling
-    word_list = []
+app = Flask(__name__)
 
-    url = u'http://buildr.apache.org/'
+#main 페이지
+@app.route('/')
+def home_page():
+    return render_template("Home_page.html")
+
+#단일 url 입력 페이지
+@app.route('/single', methods=['POST'])
+def single_page():
+    return render_template("Single_page.html")
+
+#url file 입력 페이지
+@app.route('/file', methods=['POST'])
+def file_page():
+    return render_template("File_page.html")
+
+#웹사이트 분석 결과표 페이지
+@app.route('/single_result', methods=['POST'])
+def single_result():
+    try:
+        url = request.form['input']
+    except:
+        url = None
+    
     page = requests.get(url)
+    #크롤링
     soup = BeautifulSoup(page.content, "html.parser")
     body = str(soup.find('body'))
-    text = cleanText(body).lower()
+    text = getText(body).lower()
     text = word_tokenize(text)
 
-    print(text)
+    return render_template("Result_page.html")
+
+#단어 분석 팝업창
+
+#유사도 분석 팝업창
+
+if __name__ == '__main__':
+    app.run(debug=False)
