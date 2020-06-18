@@ -79,8 +79,10 @@
         <div class="col-md-offset-2 col-md-8 col-sm-offset-1 col-sm-10 text-center">
           <div class="wow fadeInUp section-title" data-wow-delay="0.6s">
             <h2>
-              <input type="file" name="file">
-              <input type="submit" class="btn btn-dark" value="Enter">
+              <form action="/file_result" method="POST" enctype=multipart/form-data>
+                <input type="file" name="file">
+                <input type="submit" class="btn btn-dark" value="Enter">
+              </form>
             </h2>
           </div>
         </div>
