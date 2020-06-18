@@ -48,14 +48,50 @@ def single_result():
     except:
         url = None
     
-    page = requests.get(url)
-    #크롤링
-    soup = BeautifulSoup(page.content, "html.parser")
-    body = str(soup.find('body'))
-    text = getText(body).lower()
-    text = word_tokenize(text)
+    result = []         #html에 보낼 결과리스트
+    d ={}               #결과 리스트에 저장할 각 url별 결과
+    word = []           #크롤링할 단어리스트
+    
+    d['count'] = 1
+    d['url'] = url
+    
+    #크롤링으로 단어 뽑아오기
+    try:
+        #url get 성공
+        page = requests.get(url)
+        d['success'] = 1
+        
+        #시간 측정 시작
+        start = time.time() 
 
-    return render_template("Result_page.html")
+        #크롤링
+        soup = BeautifulSoup(page.content, "html.parser")
+        body = str(soup.find('body'))
+        text = getText(body).lower()
+        text = word_tokenize(text)
+
+        #의미 있는 단어만 뽑기
+        for i in text:
+            if i not in stopwords.words("english"):
+                word.append(i)
+        
+        #문서 형식
+        doc = {}
+        doc['url'] = [url]
+        doc['words'] = [word]
+
+        #엘라스틱 서치에 넣기
+        es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
+        es.index(index='final', id=1, body=doc)
+    except requests.ConnectionError:
+        #url get 실패
+        d['success'] = 0
+
+    d['word_count'] = len(word)
+    d['duration'] = time.time() - start
+    result.append(d)
+
+    return render_template('Result_page.html', result=result)
 
 #단어 분석 팝업창
 
