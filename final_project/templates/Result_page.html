@@ -1,0 +1,90 @@
+<head>
+	<meta charset="UTF-8">
+	<title> Results of Anlaysis</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<style>
+		@import 'http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css';
+
+		.card {
+			text-align: CENTER;
+			margin-top: 3%;
+		}
+
+		a {
+			margin-top: 3%;
+			margin-left: 70%;
+		}
+
+		table {
+			text-align: CENTER;
+			margin-top: 3%;
+		}
+
+		h3 {
+			text-align: CENTER;
+			margin-top: 3%;
+		}
+	</style>
+</head>
+
+<body>
+	<h3>URL 분석결과입니다.</h3>
+	<!--main화면으로 보내기-->
+	<a href="/">되돌아가기</a>
+
+	<form>
+		<!--결과 table-->
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th></th>
+					<th>URL</th>
+					<th>단어수</th>
+					<th>처리시간</th>
+					<th>상세정보</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!--elasticsearch 저장 개수에 맞게 테이블 구성-->
+				{% for d in result %}
+				<tr>
+					<td>{{d['count']}}</td>
+					<td>{{d['url']}}</td>
+					<td>{{d['word_count']}}</td>
+					<td>{{d['duration']}}</td>
+					<td>
+						<form>
+							<!--url분석 결과 만들기-->
+							<div class="card">
+								<div class="card-body">
+									[URL 분석 결과]<br>
+									{% if d['success']== 0 %}
+									URL 처리에 실패했습니다.(404 error)
+									{% endif %}
+									{% if d['success']== 1 %}
+									URL을 성공적으로 처리하였습니다.
+									{% endif %}
+									{% if d['success']== -1 %}
+									URL을 성공적으로 처리하였지만, 중복된 URL이 존재합니다.
+									{% endif %}
+									<br>
+								</div>
+							</div>
+						</form>
+						<form action='/tf_idf' method="post">
+							<input type="hidden" value="{{i}}" name="index">
+							<input type="submit" value="TF-IDF">
+						</form>
+
+						<form action='/cosine' method="post">
+							<input type="hidden" value="{{i}}" name="index2">
+							<input type="submit" value="Cosine Similarity">
+						</form>
+					</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+	</form>
+</body>
