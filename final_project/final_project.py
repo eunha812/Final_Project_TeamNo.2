@@ -3,15 +3,29 @@
 
 import sys
 import re
+import os
 import requests
+import argparse
+import subprocess
+
+import time
+import numpy
+import math
 
 from bs4 import BeautifulSoup
 from elasticsearch import Elasticsearch
-
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from flask import Flask, jsonify, request, render_template
+from werkzeug.utils import secure_filename
 
-def cleanText(body):    
+es_host="127.0.0.1"
+es_port="9200"
+
+#------------------function-------------------#
+
+#html body에서 순수한 text만 뽑아오기
+def getText(body):    
     #태그 제거
     tag = re.compile('<.*?>')
     text = re.sub(tag, ' ', body)
@@ -21,8 +35,9 @@ def cleanText(body):
 
     return cleanText
 
-#------------------flask-------------------#
+#--------------------flask---------------------#
 
+#flask 객체 app 할당
 app = Flask(__name__)
 
 #main 페이지
@@ -40,7 +55,7 @@ def single_page():
 def file_page():
     return render_template("File_page.html")
 
-#웹사이트 분석 결과표 페이지
+#단일 url 분석 페이지
 @app.route('/single_result', methods=['POST'])
 def single_result():
     try:
@@ -75,10 +90,11 @@ def single_result():
             if i not in stopwords.words("english"):
                 word.append(i)
         
-        #엘라스틱 서치에 넣기
+        #엘라스틱 서치에 문서 넣기
+        doc = {}
         try:
             #인덱스가 있으면 불러오고
-            doc = es.get(index='final', id=1)
+            doc = es.get(index='final',doc_type='test', id=1)
             doc = doc['_source']
             
             #중복 url 여부 확인
@@ -91,8 +107,8 @@ def single_result():
             doc['url'] = [url]
             doc['words'] = [word]
 
-        es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
-        es.index(index='final', id=1, body=doc)
+        es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=100)
+        es.index(index='final', doc_type='test', id=1, body=doc)
     except requests.ConnectionError:
         #url get 실패
         d['success'] = 0
@@ -162,7 +178,7 @@ def file_result():
                 #엘라스틱 서치에 넣기
                 try:
                     #인덱스가 있으면 불러오고
-                    doc = es.get(index='final', id=1)
+                    doc = es.get(index='final',doc_type='test', id=1)
                     doc = doc['_source']
                                 
                     #중복 url 여부 확인
@@ -176,8 +192,8 @@ def file_result():
                     doc['words'] = [word]
                 
                 #엘라스틱 서치에 넣기
-                es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
-                es.index(index='final', id=1, body=doc)
+                es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=100)
+                es.index(index='final', doc_type='test', id=1, body=doc)
             except requests.ConnectionError:
                 #url get 실패
                 d['success'] = 0
@@ -189,8 +205,14 @@ def file_result():
     return render_template('Result_page.html', result=result)
 
 #단어 분석 팝업창
+@app.route('/tf_idf', methods=['POST'])
+def pop():
+    return render_template('Top10_page.html')
 
 #유사도 분석 팝업창
+@app.route('/cosine', methods=['POST'])
+def pop2():
+    return render_template('Similarity3_page.html')
 
 if __name__ == '__main__':
     app.run(debug=False)
