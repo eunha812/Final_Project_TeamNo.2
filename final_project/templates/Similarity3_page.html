@@ -141,8 +141,8 @@
 
 	
 
-	<table class="table table-striped wow fadeInUp" data-wow-delay="1s" style="visibility: visible; animation-delay: 1s; animation-name: fadeInUp;">
-                <thead >
+	<table class="table">
+                <thead class="thead-dark">
                         <tr>
                                 <th scope="col">#</th>
                                 <th scope="col">Word</th>
@@ -153,25 +153,37 @@
 		<!--top3만 뽑는 용도--!>
                 {% for i in range(0,3) %}
                         <tr>
-                                <th scope="row"><font color="#381252">{{i+1}}</font></th>
-                                <td><font color="#381252">{{cosine_list[i][0]}}</font></td>
-                                <td><font color="#381252">{{cosine_list[i][1]}}</font></td>
+                                <th scope="row">{{i+1}}</th>
+                                <td>{{cosine_list[i][0]}}</td>
+                                <td>{{cosine_list[i][1]}}</td>
                         </tr>
                 {% endfor %}
                 </tbody>
         </table>
  
+
  
+
 	</form>
+
             
+
           </div>
+
  
+
       </div>
+
     </div>
+
 </section>
+
  
+
  
+
  
+
 <!------------ Footer section ------------>
 
 <footer>
@@ -225,3 +237,5 @@
 </body>
 
 </html>
+
+
