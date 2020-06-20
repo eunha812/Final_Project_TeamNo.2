@@ -35,6 +35,60 @@ def getText(body):
 
     return cleanText
 
+def compute_tf_idf(index, sent_list):
+    #-----------tf 계산------------#
+    bow = set() #단어 집합
+    
+    word_d = {} #단어 출현 수 저장 사전
+    for word in sent_list[index]:
+        if word not in word_d.keys():
+            word_d[word]=0
+        word_d[word] += 1
+        bow.add(word)
+    
+    tf_d = {}  #단어별 tf 저장 사전
+    for word, cnt in word_d.items():
+        tf_d[word] = cnt/float(len(bow))
+
+    #-----------idf 계산-----------#
+    Dval = len(sent_list)   #문서 개수
+    
+    #나머지 문서 단어 집합에 넣기
+    for i in range(0, Dval):
+        if i == index:
+            continue
+        for tok in sent_list[i]:
+            bow.add(tok)
+
+    idf_d = {}
+    tf_idf = {}
+    for t in bow:
+        if t not in tf_d.keys():
+            tf_d[t] = 0
+        else:
+            cnt = 0
+            for s in sent_list:
+                if t in s:
+                    cnt += 1
+        
+        idf_d[t] = math.log10(Dval/float(cnt))
+        tf_idf[t] = tf_d[t]*idf_d[t]
+    
+    #-----------top10 계산-----------#
+    sortList = sorted(tf_idf.items(), key = lambda x: x[1], reverse = True)
+
+    top = []
+    if len(sortList) < 10:
+        for t in sortList:
+            top.append(t[0])
+    else:
+        for i in range(10):
+            t = sortList[i]
+            top.append(t[0])
+
+    return top
+
+
 #--------------------flask---------------------#
 
 #flask 객체 app 할당
@@ -91,6 +145,8 @@ def single_result():
                 word.append(i)
         
         #엘라스틱 서치에 문서 넣기
+        es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
+
         doc = {}
         try:
             #인덱스가 있으면 불러오고
@@ -106,8 +162,7 @@ def single_result():
             doc = {}
             doc['url'] = [url]
             doc['words'] = [word]
-
-        es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=100)
+        
         es.index(index='final', doc_type='test', id=1, body=doc)
     except requests.ConnectionError:
         #url get 실패
@@ -173,9 +228,10 @@ def file_result():
                 d['word_count'] = len(word)
                 d['duration'] = time.time() - start
                 
+                #엘라스틱 서치에 문서 넣기
+                es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
+                
                 doc = {}
-
-                #엘라스틱 서치에 넣기
                 try:
                     #인덱스가 있으면 불러오고
                     doc = es.get(index='final',doc_type='test', id=1)
@@ -192,7 +248,6 @@ def file_result():
                     doc['words'] = [word]
                 
                 #엘라스틱 서치에 넣기
-                es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=100)
                 es.index(index='final', doc_type='test', id=1, body=doc)
             except requests.ConnectionError:
                 #url get 실패
@@ -207,7 +262,30 @@ def file_result():
 #단어 분석 팝업창
 @app.route('/tf_idf', methods=['POST'])
 def pop():
-    return render_template('Top10_page.html')
+    #엘라스틱 서치에서 문서 불러오기
+    es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
+    
+    try:
+        doc = es.get(index='final',doc_type='test', id=1)
+        doc = doc['_source']
+    except:
+        doc = None
+    
+    #url 받아오기
+    try:
+        url = request.form['url']
+    except:
+        url = None
+    
+    #문서내 url 인덱스 찾기
+    url_index = -1
+    for i, findUrl in enumerate(doc['url']):
+        if url == findUrl:
+            url_index = i
+    
+    top = compute_tf_idf(url_index, doc['words'])
+
+    return render_template('Top10_page.html', top=top)
 
 #유사도 분석 팝업창
 @app.route('/cosine', methods=['POST'])
