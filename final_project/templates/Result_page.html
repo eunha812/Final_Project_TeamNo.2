@@ -1,90 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<title> Results of Anlaysis</title>
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-	<style>
-		@import 'http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css';
 
-		.card {
-			text-align: CENTER;
-			margin-top: 3%;
-		}
+	<title>Result_page</title>
 
-		a {
-			margin-top: 3%;
-			margin-left: 70%;
-		}
+  	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="keywords" content="">
+  	<meta name="description" content="">
 
-		table {
-			text-align: CENTER;
-			margin-top: 3%;
-		}
 
-		h3 {
-			text-align: CENTER;
-			margin-top: 3%;
-		}
-	</style>
+	
+  <!-- stylesheets css -->
+  <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../static/css/custom.css">
+  <link rel="stylesheet" type="text/css" href="../static/css/loaders.css" />
+  <link rel="stylesheet" href="../static/css/magnific-popup.css">
+  <link rel="stylesheet" href="../static/css/animate.min.css">
+  <link rel="stylesheet" href="../static/css/font-awesome.min.css">
+  <link rel="stylesheet" href="../static/css/nivo-lightbox.css">
+  <link rel="stylesheet" href="../static/css/nivo_themes/default/default.css">
+  <link rel="stylesheet" href="../static/css/hover-min.css">
+  <link rel="stylesheet" href="../static/css/contact-input-style.css">
+
+  	
 </head>
-
 <body>
-	<h3>URL 분석결과입니다.</h3>
-	<!--main화면으로 보내기-->
-	<a href="/">되돌아가기</a>
+ <div class="loader loader-bg">
+        <div class="loader-inner ball-pulse-rise">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+
+<!------------Static navbar ------------>
+    <nav class="navbar navbar-default top-bar affix" data-spy="affix" data-offset-top="250" >
+      <div class="container">
+        <div class="navbar-header">
+          
+          <a class="navbar-brand" href="#">Final project Team NO.2</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+
+    
+<!------------ Home Banner ------------>
+<section id="banner" class="parallax">
+  <div class="gradient-overlay"></div>
+    <div class="container">
+      <div class="row">
+
+          <div class="col-md-offset-2 col-md-8 col-sm-12">
+              <h1 class="wow fadeInUp" data-wow-delay="1s">This is the result of url analysis.</h1>
+
+        <a href="/">RETURN</a>
 
 	<form>
-		<!--결과 table-->
-		<table class="table table-striped">
-			<thead>
-				<tr>
-					<th></th>
-					<th>URL</th>
-					<th>단어수</th>
-					<th>처리시간</th>
-					<th>상세정보</th>
-				</tr>
-			</thead>
-			<tbody>
-				<!--elasticsearch 저장 개수에 맞게 테이블 구성-->
-				{% for d in result %}
-				<tr>
-					<td>{{d['count']}}</td>
-					<td>{{d['url']}}</td>
-					<td>{{d['word_count']}}</td>
-					<td>{{d['duration']}}</td>
-					<td>
-						<form>
-							<!--url분석 결과 만들기-->
-							<div class="card">
-								<div class="card-body">
-									[URL 분석 결과]<br>
-									{% if d['success']== 0 %}
-									URL 처리에 실패했습니다.(404 error)
-									{% endif %}
-									{% if d['success']== 1 %}
-									URL을 성공적으로 처리하였습니다.
-									{% endif %}
-									{% if d['success']== -1 %}
-									URL을 성공적으로 처리하였지만, 중복된 URL이 존재합니다.
-									{% endif %}
-									<br>
-								</div>
-							</div>
-						</form>
-						<form action='/tf_idf' method="post">
-							<input type="hidden" value="{{i}}" name="index">
-							<input type="submit" value="TF-IDF">
-						</form>
 
-						<form action='/cosine' method="post">
-							<input type="hidden" value="{{i}}" name="index2">
-							<input type="submit" value="Cosine Similarity">
-						</form>
-					</td>
-				</tr>
-				{% endfor %}
-			</tbody>
-		</table>
+		<div class="card">
+			<div class="card-body">
+			[Status Text Box]<br>
+			{% for i in result %}
+				URL : {{i['URL']}} / 
+				{% if i['open']==0 %}
+					분석 실패했습니다.(404 error)
+				{% endif %}
+				{% if i['open']==1 %}
+				을	분석을 성공적으로 처리하였습니다.
+				{% endif %}
+				{% if i['open']==2 %}
+					성공적으로 처리했습니다 ! 그러나 중복된 URL이 존재합니다.
+				{% endif %}
+				<br>
+			{% endfor %}
+			</div>
+		</div>
 	</form>
+ <a href="/">
+	<form>
+	
+	<table class="table table-striped">
+		<thead>
+		<tr>
+			<th></th>
+        		<th>URL</th>
+        		<th>단어수</th>
+        		<th>처리 시간</th>
+        		<th>상세 정보</th>
+		</tr>
+		</thead>
+		<tbody>
+		
+        	{% for i in range(0, doc_len) %}
+            	<tr>
+                <td>{{i + 1}}</td>
+                <td>{{info_list['url'][i]}}</td>
+                <td>{{word_len[i]}}</td>
+                <td>{{time[i]}}</td>
+                <td>
+<form action='/tfidf' method="post">
+
+<input type="hidden" value="{{i}}" name="index1 value="TF IDF">
+
+<input type="submit" value="TF-IDF">
+
+</form>
+
+
+<form action='/cosine' method="post">
+
+<input type="hidden" value="{{i}}" name="index2 value="Cosine similiarity">
+
+<input type="submit" value="Cosine Similarity">
+
+</form>
+
+
+		</td>
+		</tr>
+        	{% endfor %}
+		</tbody>
+	</table>
+
+
+	</form>
+             </a>
+          </div>
+
+      </div>
+    </div>
+</section>
+
+
+
+<!------------ Footer section ------------>
+<footer>
+    
+        <div class="container">
+           
+        </div>
+    
+    </footer>
+
+
+
+ <script src="../static/js/jquery.js"></script>
+  <script src="../static/js/bootstrap.min.js"></script>
+  <script src="../static/js/jquery.magnific-popup.min.js"></script>
+  <script src="../static/js/jquery.backstretch.min.js"></script>
+  <script src="../static/js/isotope.js"></script>
+  <script src="../static/js/imagesloaded.min.js"></script>
+  <script src="../static/js/nivo-lightbox.min.js"></script>
+  <script src="../static/js/jquery.parallax.js"></script>
+  <script src="../static/js/smoothscroll.js"></script>
+  <script src="../static/js/wow.min.js"></script>
+  <script src="../static/js/core.js"></script>
+
+
+
 </body>
+</html>
