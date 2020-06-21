@@ -35,29 +35,32 @@ def getText(body):
 
     return cleanText
 
-def compute_tf_idf(index, sent_list):
+#doc_list: 전체 문서 단어리스트
+#index: 구할 url 인덱스
+def compute_tf_idf(index, doc_list):
     #-----------tf 계산------------#
-    bow = set() #단어 집합
+    bow = set()             #전체 문서 단어 집합
     
-    word_d = {} #단어 출현 수 저장 사전
-    for word in sent_list[index]:
+    word_d = {}             #단어 출현 수 저장 사전
+
+    for word in doc_list[index]:
         if word not in word_d.keys():
             word_d[word]=0
         word_d[word] += 1
         bow.add(word)
     
-    tf_d = {}  #단어별 tf 저장 사전
+    tf_d = {}               #단어별 tf 저장 사전
     for word, cnt in word_d.items():
         tf_d[word] = cnt/float(len(bow))
 
     #-----------idf 계산-----------#
-    Dval = len(sent_list)   #문서 개수
+    Dval = len(doc_list)    #문서 개수
     
     #나머지 문서 단어 집합에 넣기
     for i in range(0, Dval):
         if i == index:
             continue
-        for tok in sent_list[i]:
+        for tok in doc_list[i]:
             bow.add(tok)
 
     idf_d = {}
@@ -67,7 +70,7 @@ def compute_tf_idf(index, sent_list):
             tf_d[t] = 0
         else:
             cnt = 0
-            for s in sent_list:
+            for s in doc_list:
                 if t in s:
                     cnt += 1
         
@@ -87,6 +90,26 @@ def compute_tf_idf(index, sent_list):
             top.append(t[0])
 
     return top
+
+def make_vector(index, doc_list):
+    bow = set()             #전체 문서 단어 집합
+    v = []                  #vector
+    doc = doc_list[index]
+
+    #전체 문서 단어들 집합에 넣기
+    for d in doc_list:
+        for w in d:
+            bow.add(w)
+
+    #vector계산
+    for w in bow:
+        val = 0
+        for t in doc:
+            if w==t:
+                val +=1
+        v.append(val)
+
+    return v
 
 
 #--------------------flask---------------------#
@@ -120,8 +143,7 @@ def single_result():
     result = []         #html에 보낼 결과리스트
     d ={}               #결과 리스트에 저장할 각 url별 결과
     word = []           #크롤링할 단어리스트
-    
-    d['count'] = 1
+
     d['url'] = url
     
     #크롤링으로 단어 뽑아오기
@@ -189,10 +211,9 @@ def file_result():
     result = []         #html에 보낼 결과리스트
     url_check = []      #url 중복 확인용
 
-    for i, url in enumerate(urls):
+    for url in urls:
         d = {}          #결과 리스트에 저장할 각 url별 결과 사전
 
-        d['count'] = i + 1
         d['url'] = url
         
         if url in url_check:
@@ -290,7 +311,44 @@ def pop():
 #유사도 분석 팝업창
 @app.route('/cosine', methods=['POST'])
 def pop2():
-    return render_template('Similarity3_page.html')
+    #엘라스틱 서치에서 문서 불러오기
+    es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
+    
+    try:
+        doc = es.get(index='final',doc_type='test', id=1)
+        doc = doc['_source']
+    except:
+        doc = None
+    
+    #url 받아오기
+    try:
+        url = request.form['url']
+    except:
+        url = None
+    
+    #문서내 url 인덱스 찾기
+    url_index = -1
+    for i, findUrl in enumerate(doc['url']):
+        if url == findUrl:
+            url_index = i
+
+    top = []
+    #찾을 url의 단어 리스트
+    findList = doc['words'][url_index]
+    for i, otherList in enumerate(doc['url']):
+        if url_index == i:
+            continue
+        v1 = make_vector(url_index, doc['words'])
+        v2 = make_vector(i, doc['words'])
+        dotpro = numpy.dot(v1,v2)
+        norm1 = numpy.linalg.norm(v1)
+        norm2 = numpy.linalg.norm(v2)
+        cossimil = dotpro/norm1/norm2
+        top.append((doc['url'][i], cossimil))
+    
+    top = sorted(top, key = lambda x : x[1], reverse = True)
+    
+    return render_template('Similarity3_page.html', top=top)
 
 if __name__ == '__main__':
     app.run(debug=False)

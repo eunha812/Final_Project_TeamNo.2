@@ -1,4 +1,10 @@
-http://crunch.apache.org/
+http://subversion.apache.org/
+http://uima.apache.org/
+https://tapestry.apache.org/
+http://whimsical.apache.org/
+http://datafu.apache.org/
+http://tcl.apache.org/
+http://zeppelin.apache.org/
 http://iceberg.apache.org/
-http://santuario.apache.org/
 https://zookeeper.apache.org/
+http://labs.apache.org/
