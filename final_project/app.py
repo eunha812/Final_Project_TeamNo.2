@@ -180,16 +180,16 @@ def single_result():
                 doc['url'].append(url)
                 doc['words'].append(word)
                 doc['duration'].append(d['duration'])
-                doc['tf_idf'].append(-1)
-                doc['cosine'].append(-1)
+                doc['tf'].append([])
+                doc['cosine'].append([])
         except:
             #없으면 새로 만들기
             doc = {}
             doc['url'] = [url]
             doc['words'] = [word]
             doc['duration'] = [d['duration']]
-            doc['tf_idf'] = [-1]
-            doc['cosine'] = [-1]
+            doc['tf'] = [[],]
+            doc['cosine'] = [[],]
         
         es.index(index='final', doc_type='test', id=1, body=doc)
     except requests.ConnectionError:
@@ -270,16 +270,16 @@ def file_result():
                         doc['url'].append(url)
                         doc['words'].append(word)
                         doc['duration'].append(d['duration'])
-                        doc['tf_idf'].append(-1)
-                        doc['cosine'].append(-1)
+                        doc['tf'].append([])
+                        doc['cosine'].append([])
                 except:
                     #없으면 새로 만들기
                     doc = {}
                     doc['url'] = [url]
                     doc['words'] = [word]
                     doc['duration'] = [d['duration']]
-                    doc['tf_idf'] = [-1]
-                    doc['cosine'] = [-1]
+                    doc['tf'] = [[],]
+                    doc['cosine'] = [[],]
                     
                 #엘라스틱 서치에 넣기
                 es.index(index='final', doc_type='test', id=1, body=doc)
@@ -318,8 +318,8 @@ def pop():
             url_index = i
 
     top = compute_tf_idf(url_index, doc['words'])
-    doc['tf_idf'][url_index] = top
-    
+    doc['tf'][url_index] = top
+
     #엘라스틱 서치에 넣기
     es.index(index='final', doc_type='test', id=1, body=doc)
 
