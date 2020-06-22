@@ -179,11 +179,17 @@ def single_result():
             if url not in doc['url']:
                 doc['url'].append(url)
                 doc['words'].append(word)
+                doc['duration'].append(d['duration'])
+                doc['tf_idf'].append(-1)
+                doc['cosine'].append(-1)
         except:
             #없으면 새로 만들기
             doc = {}
             doc['url'] = [url]
             doc['words'] = [word]
+            doc['duration'] = [d['duration']]
+            doc['tf_idf'] = [-1]
+            doc['cosine'] = [-1]
         
         es.index(index='final', doc_type='test', id=1, body=doc)
     except requests.ConnectionError:
@@ -192,6 +198,7 @@ def single_result():
 
     d['word_count'] = len(word)
     d['duration'] = time.time() - start
+    
     result.append(d)
 
     return render_template('Result_page.html', result=result)
@@ -262,12 +269,18 @@ def file_result():
                     if url not in doc['url']:
                         doc['url'].append(url)
                         doc['words'].append(word)
+                        doc['duration'].append(d['duration'])
+                        doc['tf_idf'].append(-1)
+                        doc['cosine'].append(-1)
                 except:
                     #없으면 새로 만들기
                     doc = {}
                     doc['url'] = [url]
                     doc['words'] = [word]
-                
+                    doc['duration'] = [d['duration']]
+                    doc['tf_idf'] = [-1]
+                    doc['cosine'] = [-1]
+                    
                 #엘라스틱 서치에 넣기
                 es.index(index='final', doc_type='test', id=1, body=doc)
             except requests.ConnectionError:
@@ -303,8 +316,12 @@ def pop():
     for i, findUrl in enumerate(doc['url']):
         if url == findUrl:
             url_index = i
-    
+
     top = compute_tf_idf(url_index, doc['words'])
+    doc['tf_idf'][url_index] = top
+    
+    #엘라스틱 서치에 넣기
+    es.index(index='final', doc_type='test', id=1, body=doc)
 
     return render_template('Top10_page.html', top=top)
 
@@ -347,7 +364,11 @@ def pop2():
         top.append((doc['url'][i], cossimil))
     
     top = sorted(top, key = lambda x : x[1], reverse = True)
+    doc['cosine'][url_index] = top
     
+    #엘라스틱 서치에 넣기
+    es.index(index='final', doc_type='test', id=1, body=doc)
+
     return render_template('Similarity3_page.html', top=top)
 
 if __name__ == '__main__':
