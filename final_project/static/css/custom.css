@@ -137,9 +137,11 @@ a:focus {
 
 
 /* All Section styles */
+
+
 section {
-  padding-top: 80px;
-  padding-bottom: 80px;
+  padding-top: 40%;
+  padding-bottom: 40%;
 }
 
 #team {
@@ -187,7 +189,7 @@ background: linear-gradient(120deg, #7b4397 , #dc2430); /* W3C, IE 10+/ Edge, Fi
   position: absolute;
   top: 0;
   width: 100%;
-  height: 100vh;
+  height: 100%;
 }
 
 #banner p {
