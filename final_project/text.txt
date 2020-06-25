@@ -1,10 +1,10 @@
-http://subversion.apache.org/
 http://uima.apache.org/
-https://tapestry.apache.org/
+http://bigtop.apache.org/
 http://whimsical.apache.org/
-http://datafu.apache.org/
 http://tcl.apache.org/
 http://zeppelin.apache.org/
 http://iceberg.apache.org/
 https://zookeeper.apache.org/
 http://labs.apache.org/
+http://subversion.apache.org/
+http://datafu.apache.org/
