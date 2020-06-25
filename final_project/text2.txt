@@ -1,0 +1,6 @@
+http://vcl.apache.org/
+http://bubblegum.apache.org/
+http://vcl.apache.org/
+https://geode.apache.org/
+http://iceberg.apache.org/
+https://sling.apache.org/
