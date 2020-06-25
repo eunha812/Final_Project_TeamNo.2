@@ -192,6 +192,8 @@ def single_result():
     except requests.ConnectionError:
         #url get 실패
         d['success'] = 0
+        d['word_count'] = 0
+        d['duration'] = 0
 
     result.append(d)
 
@@ -284,80 +286,85 @@ def file_result():
 #단어 분석 팝업창
 @app.route('/tf_idf', methods=['POST'])
 def pop():
+    
+    top10 = []
+    end = 0
+    
     #엘라스틱 서치에서 문서 불러오기
     es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
     
     try:
         doc = es.get(index='final',doc_type='test', id=1)
         doc = doc['_source']
-    except:
-        doc = None
-    
-    #url 받아오기
-    try:
-        url = request.form['url']
-    except:
-        url = None
-    
-    top10=[]
-    end = 0
-    #단일 url일 경우
-    if len(doc['url']) > 1:
-        #문서내 url 인덱스 찾기
-        url_index = -1
-        for i, findUrl in enumerate(doc['url']):
-            if url == findUrl:
-                url_index = i
-    
-        start = time.time() 
-        top10 = compute_tf_idf(url_index, doc['words'])
-        end = time.time() - start
+        #url 받아오기
+        try:
+            url = request.form['url']
 
+            #단일 url 아니면
+            if len(doc['url']) > 1:
+                #문서내 url 인덱스 찾기
+                url_index = -1
+                for i, findUrl in enumerate(doc['url']):
+                    if url == findUrl:
+                        url_index = i
+
+                if url_index > -1:
+                    start = time.time()
+                    top10 = compute_tf_idf(url_index, doc['words'])
+                    end = time.time() - start
+        except:
+            end = -1
+    except:
+        end = -1
+    
     return render_template('Top10_page.html', top=top10, time=end)
 
 #유사도 분석 팝업창
 @app.route('/cosine', methods=['POST'])
 def pop2():
+    
+    top = []
+    end = 0
+    
     #엘라스틱 서치에서 문서 불러오기
     es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
     
     try:
         doc = es.get(index='final',doc_type='test', id=1)
         doc = doc['_source']
+
+        #url 받아오기
+        try:
+            url = request.form['url']
+
+            #단일 url 아니면
+            if len(doc['url']) > 1:
+                #문서내 url 인덱스 찾기
+                url_index = -1
+                for i, findUrl in enumerate(doc['url']):
+                    if url == findUrl:
+                        url_index = i
+                
+                if url_index > -1:
+                    #찾을 url의 단어 리스트
+                    start = time.time()
+                    for i, otherList in enumerate(doc['url']):
+                        if url_index == i:
+                            continue
+                        v1 = make_vector(url_index, doc['words'])
+                        v2 = make_vector(i, doc['words'])
+                        dotpro = numpy.dot(v1,v2)
+                        norm1 = numpy.linalg.norm(v1)
+                        norm2 = numpy.linalg.norm(v2)
+                        cossimil = dotpro/norm1/norm2
+                        top.append((doc['url'][i], cossimil))
+                 
+                    top = sorted(top, key = lambda x : x[1], reverse = True)
+                    end = time.time() - start
+        except:
+            end = -1
     except:
-        doc = None
-    
-    #url 받아오기
-    try:
-        url = request.form['url']
-    except:
-        url = None
-    
-    top = []
-    end = 0
-    #단일 url일 경우
-    if len(doc['url']) > 1:
-        #문서내 url 인덱스 찾기
-        url_index = -1
-        for i, findUrl in enumerate(doc['url']):
-            if url == findUrl:
-                url_index = i
-        #찾을 url의 단어 리스트
-        findList = doc['words'][url_index]
-        for i, otherList in enumerate(doc['url']):
-            if url_index == i:
-                continue
-            v1 = make_vector(url_index, doc['words'])
-            v2 = make_vector(i, doc['words'])
-            dotpro = numpy.dot(v1,v2)
-            norm1 = numpy.linalg.norm(v1)
-            norm2 = numpy.linalg.norm(v2)
-            cossimil = dotpro/norm1/norm2
-            top.append((doc['url'][i], cossimil))
-    
-        start = time.time()
-        top = sorted(top, key = lambda x : x[1], reverse = True)
-        end = time.time() - start
+        end = -1
 
     return render_template('Similarity3_page.html', top=top, time=end)
 
