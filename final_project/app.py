@@ -157,7 +157,7 @@ def single_result():
 
         #크롤링
         soup = BeautifulSoup(page.content, "html.parser")
-        body = str(soup.find('body'))
+        body = soup.find('body').text
         text = getText(body).lower()
         text = word_tokenize(text)
 
@@ -165,7 +165,10 @@ def single_result():
         for i in text:
             if i not in stopwords.words("english"):
                 word.append(i)
-        
+
+        d['word_count'] = len(word)
+        d['duration'] = time.time() - start
+
         #엘라스틱 서치에 문서 넣기
         es = Elasticsearch([{'host':es_host, 'port':es_port}], timeout=30)
 
@@ -179,26 +182,17 @@ def single_result():
             if url not in doc['url']:
                 doc['url'].append(url)
                 doc['words'].append(word)
-                doc['duration'].append(d['duration'])
-                doc['tf'].append([])
-                doc['cosine'].append([])
         except:
             #없으면 새로 만들기
             doc = {}
             doc['url'] = [url]
             doc['words'] = [word]
-            doc['duration'] = [d['duration']]
-            doc['tf'] = [[],]
-            doc['cosine'] = [[],]
         
         es.index(index='final', doc_type='test', id=1, body=doc)
     except requests.ConnectionError:
         #url get 실패
         d['success'] = 0
 
-    d['word_count'] = len(word)
-    d['duration'] = time.time() - start
-    
     result.append(d)
 
     return render_template('Result_page.html', result=result)
@@ -269,18 +263,12 @@ def file_result():
                     if url not in doc['url']:
                         doc['url'].append(url)
                         doc['words'].append(word)
-                        doc['duration'].append(d['duration'])
-                        doc['tf'].append([])
-                        doc['cosine'].append([])
                 except:
                     #없으면 새로 만들기
                     doc = {}
                     doc['url'] = [url]
                     doc['words'] = [word]
-                    doc['duration'] = [d['duration']]
-                    doc['tf'] = [[],]
-                    doc['cosine'] = [[],]
-                    
+                
                 #엘라스틱 서치에 넣기
                 es.index(index='final', doc_type='test', id=1, body=doc)
             except requests.ConnectionError:
@@ -311,19 +299,21 @@ def pop():
     except:
         url = None
     
-    #문서내 url 인덱스 찾기
-    url_index = -1
-    for i, findUrl in enumerate(doc['url']):
-        if url == findUrl:
-            url_index = i
+    top10=[]
+    end = 0
+    #단일 url일 경우
+    if len(doc['url']) > 1:
+        #문서내 url 인덱스 찾기
+        url_index = -1
+        for i, findUrl in enumerate(doc['url']):
+            if url == findUrl:
+                url_index = i
+    
+        start = time.time() 
+        top10 = compute_tf_idf(url_index, doc['words'])
+        end = time.time() - start
 
-    top = compute_tf_idf(url_index, doc['words'])
-    doc['tf'][url_index] = top
-
-    #엘라스틱 서치에 넣기
-    es.index(index='final', doc_type='test', id=1, body=doc)
-
-    return render_template('Top10_page.html', top=top)
+    return render_template('Top10_page.html', top=top10, time=end)
 
 #유사도 분석 팝업창
 @app.route('/cosine', methods=['POST'])
@@ -343,33 +333,33 @@ def pop2():
     except:
         url = None
     
-    #문서내 url 인덱스 찾기
-    url_index = -1
-    for i, findUrl in enumerate(doc['url']):
-        if url == findUrl:
-            url_index = i
-
     top = []
-    #찾을 url의 단어 리스트
-    findList = doc['words'][url_index]
-    for i, otherList in enumerate(doc['url']):
-        if url_index == i:
-            continue
-        v1 = make_vector(url_index, doc['words'])
-        v2 = make_vector(i, doc['words'])
-        dotpro = numpy.dot(v1,v2)
-        norm1 = numpy.linalg.norm(v1)
-        norm2 = numpy.linalg.norm(v2)
-        cossimil = dotpro/norm1/norm2
-        top.append((doc['url'][i], cossimil))
+    end = 0
+    #단일 url일 경우
+    if len(doc['url']) > 1:
+        #문서내 url 인덱스 찾기
+        url_index = -1
+        for i, findUrl in enumerate(doc['url']):
+            if url == findUrl:
+                url_index = i
+        #찾을 url의 단어 리스트
+        findList = doc['words'][url_index]
+        for i, otherList in enumerate(doc['url']):
+            if url_index == i:
+                continue
+            v1 = make_vector(url_index, doc['words'])
+            v2 = make_vector(i, doc['words'])
+            dotpro = numpy.dot(v1,v2)
+            norm1 = numpy.linalg.norm(v1)
+            norm2 = numpy.linalg.norm(v2)
+            cossimil = dotpro/norm1/norm2
+            top.append((doc['url'][i], cossimil))
     
-    top = sorted(top, key = lambda x : x[1], reverse = True)
-    doc['cosine'][url_index] = top
-    
-    #엘라스틱 서치에 넣기
-    es.index(index='final', doc_type='test', id=1, body=doc)
+        start = time.time()
+        top = sorted(top, key = lambda x : x[1], reverse = True)
+        end = time.time() - start
 
-    return render_template('Similarity3_page.html', top=top)
+    return render_template('Similarity3_page.html', top=top, time=end)
 
 if __name__ == '__main__':
     app.run(debug=False)
