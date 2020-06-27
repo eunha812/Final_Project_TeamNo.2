@@ -140,8 +140,8 @@ a:focus {
 
 
 section {
-  padding-top: 80px;
-  padding-bottom: 80px;
+  padding-top: 20%;
+  padding-bottom: 20%;
 }
 
 #team {
@@ -273,7 +273,7 @@ background: linear-gradient(120deg, #7b4397 , #dc2430); /* W3C, IE 10+/ Edge, Fi
 #todo .feature-thumb {
   background-color: #ffffff;
   position: relative;
-  padding: 20%;
+  padding: 40px;
   margin-top: 32px;
   text-align: center;
   box-shadow: 0 0 21px rgba(0, 0, 0, 0.14);
@@ -708,8 +708,8 @@ footer .love-text{
   }
 
   section {
-    padding-top: 40%;
-    padding-bottom: 40%;
+    padding-top: 20%;
+    padding-bottom: 20%;
   }
 
   #location .media-object img {
